@@ -130,6 +130,7 @@ model AuthUser {
   email        String   @unique
   passwordHash String
   refreshToken String?
+  role         String   @default("USER")
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   @@schema("practice")

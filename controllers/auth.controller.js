@@ -59,10 +59,15 @@ import jwt from "jsonwebtoken";
 import prisma from "../prismaClient.js";
 
 
-const generateAccessToken = (userId) =>
-  jwt.sign({ userId }, process.env.JWT_ACCESS_SECRET, {
-    expiresIn: "1h"
-  });
+const generateAccessToken = (user) =>
+  jwt.sign(
+    {
+      userId: user.id,
+      role: user.role
+    },
+    process.env.JWT_ACCESS_SECRET,
+    { expiresIn: "1h" }
+  );
 
 const generateRefreshToken = (userId) =>
   jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET, {
@@ -74,6 +79,11 @@ export const login = async (req, res) => {
 
   const user = await prisma.authUser.findUnique({ where: { email } });
 
+  console.log("LOGGED IN USER:", {
+    id: user?.id,
+    email: user?.email,
+    role: user?.role
+  });
   if (!user || !user.isActive) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
@@ -83,7 +93,7 @@ export const login = async (req, res) => {
     return res.status(401).json({ message: "Invalid credentials" });
   }
 
-  const accessToken = generateAccessToken(user.id);
+  const accessToken = generateAccessToken(user);
   const refreshToken = generateRefreshToken(user.id);
 
   await prisma.authUser.update({
@@ -96,7 +106,6 @@ export const login = async (req, res) => {
     refreshToken
   });
 };
-
 
 export const refresh = async (req, res) => {
   const { refreshToken } = req.body;
@@ -122,13 +131,15 @@ export const refresh = async (req, res) => {
       return res.status(403).json({ message: "Invalid refresh token" });
     }
 
-    const newAccessToken = generateAccessToken(user.id);
+    // ✅ FIXED
+    const newAccessToken = generateAccessToken(user);
 
     res.json({ accessToken: newAccessToken });
   } catch {
     return res.status(403).json({ message: "Invalid refresh token" });
   }
 };
+
 
 export const logout = async (req, res) => {
   const { userId } = req.user;
