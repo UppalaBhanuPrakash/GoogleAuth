@@ -18,32 +18,51 @@
 //     res.status(401).json({ error: "Invalid token" });
 //   }
 // };
+// import jwt from "jsonwebtoken";
+// import prisma from "../prismaClient.js";
+
+// export const authenticate = async (req, res, next) => {
+//   const header = req.headers.authorization;
+
+//   if (!header) {
+//     return res.status(401).json({ message: "No token provided" });
+//   }
+
+//   const token = header.split(" ")[1];
+
+//   try {
+//     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+//     const user = await prisma.authUser.findUnique({
+//       where: { id: decoded.userId }
+//     });
+
+//     if (!user || !user.isActive) {
+//       return res.status(401).json({ message: "User disabled" });
+//     }
+
+//     req.user = { userId: user.id };
+//     next();
+//   } catch {
+//     res.status(401).json({ message: "Invalid token" });
+//   }
+// };
 import jwt from "jsonwebtoken";
-import prisma from "../prismaClient.js";
 
-export const authenticate = async (req, res, next) => {
-  const header = req.headers.authorization;
+export const authenticate = (req, res, next) => {
+  const authHeader = req.headers.authorization;
 
-  if (!header) {
+  if (!authHeader) {
     return res.status(401).json({ message: "No token provided" });
   }
 
-  const token = header.split(" ")[1];
+  const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    const user = await prisma.authUser.findUnique({
-      where: { id: decoded.userId }
-    });
-
-    if (!user || !user.isActive) {
-      return res.status(401).json({ message: "User disabled" });
-    }
-
-    req.user = { userId: user.id };
+    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+    req.user = decoded; // { userId }
     next();
   } catch {
-    res.status(401).json({ message: "Invalid token" });
+    return res.status(401).json({ message: "Access token expired or invalid" });
   }
 };
