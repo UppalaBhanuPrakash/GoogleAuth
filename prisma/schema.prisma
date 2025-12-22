@@ -128,7 +128,7 @@ model AuthUser {
   id           Int      @id @default(autoincrement())
   username     String
   email        String   @unique
-  passwordHash String
+  passwordHash String?
   refreshToken String?
   role         String   @default("USER")
   isActive     Boolean  @default(true)

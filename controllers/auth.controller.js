@@ -61,29 +61,24 @@ import prisma from "../prismaClient.js";
 
 const generateAccessToken = (user) =>
   jwt.sign(
-    {
-      userId: user.id,
-      role: user.role
-    },
+    { userId: user.id, role: user.role },
     process.env.JWT_ACCESS_SECRET,
-    { expiresIn: "1h" }
+    { expiresIn: "15m" }
   );
 
 const generateRefreshToken = (userId) =>
-  jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: "7d"
-  });
+  jwt.sign(
+    { userId },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: "7d" }
+  );
+
+
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
   const user = await prisma.authUser.findUnique({ where: { email } });
-
-  console.log("LOGGED IN USER:", {
-    id: user?.id,
-    email: user?.email,
-    role: user?.role
-  });
   if (!user || !user.isActive) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
@@ -101,17 +96,14 @@ export const login = async (req, res) => {
     data: { refreshToken }
   });
 
-  res.json({
-    accessToken,
-    refreshToken
-  });
+  res.json({ accessToken, refreshToken });
 };
+
 
 export const refresh = async (req, res) => {
   const { refreshToken } = req.body;
-
   if (!refreshToken) {
-    return res.status(401).json({ message: "Refresh token required" });
+    return res.status(400).json({ message: "Refresh token required" });
   }
 
   try {
@@ -121,25 +113,30 @@ export const refresh = async (req, res) => {
     );
 
     const user = await prisma.authUser.findFirst({
-      where: {
-        id: payload.userId,
-        refreshToken
-      }
+      where: { id: payload.userId, refreshToken }
     });
 
     if (!user) {
       return res.status(403).json({ message: "Invalid refresh token" });
     }
 
-    // ✅ FIXED
+ 
     const newAccessToken = generateAccessToken(user);
+    const newRefreshToken = generateRefreshToken(user.id);
 
-    res.json({ accessToken: newAccessToken });
+    await prisma.authUser.update({
+      where: { id: user.id },
+      data: { refreshToken: newRefreshToken }
+    });
+
+    res.json({
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken
+    });
   } catch {
     return res.status(403).json({ message: "Invalid refresh token" });
   }
 };
-
 
 export const logout = async (req, res) => {
   const { userId } = req.user;
@@ -151,3 +148,7 @@ export const logout = async (req, res) => {
 
   res.json({ message: "Logged out successfully" });
 };
+export const getCsrfToken = (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+};
+ 
