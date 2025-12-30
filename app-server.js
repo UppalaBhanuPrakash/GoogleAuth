@@ -152,59 +152,70 @@
 // app.use("/api", Routes);
 
 // export default app;
-import express from "express";
-import dotenv from "dotenv";
-import authRoutes from "./routes/auth.routes.js";
-import jwt from "jsonwebtoken";
+// import express from "express";
+// import dotenv from "dotenv";
+// import authRoutes from "./routes/auth.routes.js";
+// import jwt from "jsonwebtoken";
 
  
 
-const env = process.env.NODE_ENV || "development";
+// const env = process.env.NODE_ENV || "development";
 
-dotenv.config({
-  path: `.env.${env}`
-});
-import prisma from "./prismaClient.js";
-
-
-
-const app = express();
-app.use(express.json());
-app.use("/auth", authRoutes);
+// dotenv.config({
+//   path: `.env.${env}`
+// });
+// import prisma from "./prismaClient.js";
 
 
-app.get("/orders", async (req, res) => {
-  try {
-    const token = req.query.token;
 
-    if (!token) {
-      return res.status(401).send("No token provided");
-    }
-
-    const decoded = jwt.verify(
-      decodeURIComponent(token),
-      process.env.JWT_ACCESS_SECRET
-    );
-
-    //  ENFORCE AUTHORIZATION HERE
-    if (decoded.role !== "USER") {
-      return res.status(403).send("Admins only");
-    }
-
-    const orders = await prisma.order.findMany({
-      where: { UserID: decoded.userId }
-    });
-
-    res.send(`
-      <h2>Your Orders</h2>
-      <pre>${JSON.stringify(orders, null, 2)}</pre>
-    `);
-  } catch (err) {
-    res.status(401).send("Invalid or expired token");
-  }
-});
+// const app = express();
+// app.use(express.json());
+// app.use("/auth", authRoutes);
 
 
-app.listen(process.env.PORT, () => {
-  console.log(`Server running on port ${process.env.PORT}`);
+// app.get("/orders", async (req, res) => {
+//   try {
+//     const token = req.query.token;
+
+//     if (!token) {
+//       return res.status(401).send("No token provided");
+//     }
+
+//     const decoded = jwt.verify(
+//       decodeURIComponent(token),
+//       process.env.JWT_ACCESS_SECRET
+//     );
+
+//     //  ENFORCE AUTHORIZATION HERE
+//     if (decoded.role !== "USER") {
+//       return res.status(403).send("Admins only");
+//     }
+
+//     const orders = await prisma.order.findMany({
+//       where: { UserID: decoded.userId }
+//     });
+
+//     res.send(`
+//       <h2>Your Orders</h2>
+//       <pre>${JSON.stringify(orders, null, 2)}</pre>
+//     `);
+//   } catch (err) {
+//     res.status(401).send("Invalid or expired token");
+//   }
+// });
+
+
+// app.listen(process.env.PORT, () => {
+//   console.log(`Server running on port ${process.env.PORT}`);
+// });
+// app-server.js
+import dotenv from "dotenv";
+dotenv.config();
+
+import app from "./app.js";
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
