@@ -209,13 +209,36 @@
 //   console.log(`Server running on port ${process.env.PORT}`);
 // });
 // app-server.js
+// import dotenv from "dotenv";
+// dotenv.config();
+
+// import app from "./app.js";
+
+// const PORT = process.env.PORT || 3000;
+
+// app.listen(PORT, () => {
+//   console.log(`Server running on port ${PORT}`);
+// });
+import express from "express";
 import dotenv from "dotenv";
+import globalErrorHandler from "./middleware/error.middleware.js";
+import { getUser } from "./controllers/user.controller.js";
+
 dotenv.config();
 
-import app from "./app.js";
+const app = express();
+
+app.use(express.json());
+
+app.get("/user", getUser);
+
+app.all("*", (req, res, next) => {
+  next(new Error(`Can't find ${req.originalUrl}`));
+});
+
+app.use(globalErrorHandler);
 
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
