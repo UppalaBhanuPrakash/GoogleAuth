@@ -58,7 +58,7 @@ export const googleLogin = async (req, res) => {
     //  ROLE-BASED REDIRECT
     if (user.role === "USER") {
       return res.redirect(
-        `http://localhost:3000/orders?token=${encodeURIComponent(accessToken)}`
+        `https://googleauth-1-clzg.onrender.com/orders?token=${encodeURIComponent(accessToken)}`
       );
     }
 
