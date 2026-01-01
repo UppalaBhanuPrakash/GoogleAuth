@@ -5,10 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node prismaserver.js",
-    "dev": "node prismaserver.js",
-    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand"
-  },
+  "start": "npx prisma generate && node app-server.js",
+  "dev": "node app-server.js",
+  "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
